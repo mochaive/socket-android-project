@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AndroidSocketApplciation</string>
+    <string name="app_name">AndroidSocketApplication</string>
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="ip">IP</string>
