@@ -9,10 +9,10 @@
     <string name="hint_port">PORT NUMBER</string>
     <string name="hint_ip">192.168.0.1</string>
     <string name="hint_msg">Hello, world!</string>
-    <string name="button1">연결하기</string>기
+    <string name="button1">연결하기</string>
     <string name="button2">연결끊기</string>
     <string name="button3">서버 열기</string>
     <string name="button4">서버 닫기</string>
     <string name="button5">내 정보 보기</string>
-    <string name="button6">Message 보내</string>
+    <string name="button6">Message 보내기</string>
 </resources>
