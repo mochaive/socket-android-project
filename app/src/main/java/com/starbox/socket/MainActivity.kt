@@ -36,7 +36,11 @@ class MainActivity : AppCompatActivity() {
         server.close()
         socket.close()
 
-        button_connect.setOnClickListener {    //클라이언트 -> 서버 접속
+        button_refresh.setOnClickListener {
+            text_status.text = ""
+        }
+
+        button_connect.setOnClickListener {    // 클라이언트 -> 서버 접속
             if (et_ip.text.isNotEmpty()) {
                 ip = et_ip.text.toString()
                 if (et_port.text.isNotEmpty()) {
@@ -59,7 +63,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        button_disconnect.setOnClickListener {    //클라이언트 -> 서버 접속 끊기
+        button_disconnect.setOnClickListener {    // 클라이언트 -> 서버 접속 끊기
             if (!socket.isClosed) {
                 Disconnect().start()
             } else {
@@ -67,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        button_setserver.setOnClickListener {    //서버 포트 열기
+        button_setserver.setOnClickListener {    // 서버 포트 열기
             if (et_port.text.isNotEmpty()) {
                 val cport = et_port.text.toString().toInt()
                 if (cport < 0 || cport > 65535) {
@@ -86,7 +90,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        button_closeserver.setOnClickListener {    //서버 포트 닫기
+        button_closeserver.setOnClickListener {    // 서버 포트 닫기
             if (!server.isClosed) {
                 CloseServer().start()
             } else {
@@ -96,11 +100,11 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        button_info.setOnClickListener {    //자기자신의 연결 정보(IP 주소)확인
+        button_info.setOnClickListener {    // 자기자신의 연결 정보(IP 주소)확인
             ShowInfo().start()
         }
 
-        button_msg.setOnClickListener {    //상대에게 메시지 전송
+        button_msg.setOnClickListener {    // 상대에게 메시지 전송
             if (socket.isClosed) {
                 Toast.makeText(this@MainActivity, "연결이 되어있지 않습니다.", Toast.LENGTH_SHORT).show()
             } else {
@@ -110,13 +114,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        mHandler = object : Handler(Looper.getMainLooper()) {  //Thread들로부터 Handler를 통해 메시지를 수신
+        mHandler = object : Handler(Looper.getMainLooper()) {  // Thread들로부터 Handler를 통해 메시지를 수신
             override fun handleMessage(msg: Message) {
                 super.handleMessage(msg)
                 when (msg.what) {
                     1 -> Toast.makeText(this@MainActivity, "IP 주소가 잘못되었거나 서버의 포트가 개방되지 않았습니다.", Toast.LENGTH_SHORT).show()
                     2 -> Toast.makeText(this@MainActivity, "서버 포트 " + port + "가 준비되었습니다.", Toast.LENGTH_SHORT).show()
-                    3 -> Toast.makeText(this@MainActivity, msg.obj.toString(), Toast.LENGTH_SHORT).show()
+                    3 -> text_status.text = msg.obj as String // 채팅
                     4 -> Toast.makeText(this@MainActivity, "연결이 종료되었습니다.", Toast.LENGTH_SHORT).show()
                     5 -> Toast.makeText(this@MainActivity, "이미 사용중인 포트입니다.", Toast.LENGTH_SHORT).show()
                     6 -> Toast.makeText(this@MainActivity, "서버 준비에 실패하였습니다.", Toast.LENGTH_SHORT).show()
@@ -144,18 +148,18 @@ class MainActivity : AppCompatActivity() {
                 writeSocket = DataOutputStream(socket.getOutputStream())
                 readSocket = DataInputStream(socket.getInputStream())
                 val b = readSocket.read()
-                if (b == 1) {    //서버로부터 접속이 확인되었을 때
+                if (b == 1) {    // 서버로부터 접속이 확인되었을 때
                     mHandler.obtainMessage(11).apply {
                         sendToTarget()
                     }
                     ClientSocket().start()
-                } else {    //서버 접속에 성공하였으나 서버가 응답을 하지 않았을 때
+                } else {    // 서버 접속에 성공하였으나 서버가 응답을 하지 않았을 때
                     mHandler.obtainMessage(14).apply {
                         sendToTarget()
                     }
                     socket.close()
                 }
-            } catch (e: Exception) {    //연결 실패
+            } catch (e: Exception) {    // 연결 실패
                 val state = 1
                 mHandler.obtainMessage(state).apply {
                     sendToTarget()
@@ -171,7 +175,7 @@ class MainActivity : AppCompatActivity() {
             try {
                 while (true) {
                     val ac = readSocket.read()
-                    if (ac == 2) {    //서버로부터 메시지 수신 명령을 받았을 때
+                    if (ac == 2) {    // 서버로부터 메시지 수신 명령을 받았을 때
                         val bac = readSocket.readUTF()
                         val input = bac.toString()
                         val recvInput = input.trim()
@@ -180,7 +184,7 @@ class MainActivity : AppCompatActivity() {
                         msg.what = 3
                         msg.obj = recvInput
                         mHandler.sendMessage(msg)
-                    } else if (ac == 10) {    //서버로부터 접속 종료 명령을 받았을 때
+                    } else if (ac == 10) {    // 서버로부터 접속 종료 명령을 받았을 때
                         mHandler.obtainMessage(18).apply {
                             sendToTarget()
                         }
@@ -188,7 +192,7 @@ class MainActivity : AppCompatActivity() {
                         break
                     }
                 }
-            } catch (e: SocketException) {    //소켓이 닫혔을 때
+            } catch (e: SocketException) {    // 소켓이 닫혔을 때
                 mHandler.obtainMessage(15).apply {
                     sendToTarget()
                 }
@@ -199,7 +203,7 @@ class MainActivity : AppCompatActivity() {
     class Disconnect : Thread() {
         override fun run() {
             try {
-                writeSocket.write(10)    //서버에게 접속 종료 명령 전송
+                writeSocket.write(10)    // 서버에게 접속 종료 명령 전송
                 socket.close()
             } catch (e: Exception) {
 
@@ -211,7 +215,7 @@ class MainActivity : AppCompatActivity() {
 
         override fun run() {
             try {
-                server = ServerSocket(port)    //포트 개방
+                server = ServerSocket(port)    // 포트 개방
                 mHandler.obtainMessage(2, "").apply {
                     sendToTarget()
                 }
@@ -221,18 +225,18 @@ class MainActivity : AppCompatActivity() {
                     writeSocket = DataOutputStream(socket.getOutputStream())
                     readSocket = DataInputStream(socket.getInputStream())
 
-                    writeSocket.write(1)    //클라이언트에게 서버의 소켓 생성을 알림
+                    writeSocket.write(1)    // 클라이언트에게 서버의 소켓 생성을 알림
                     mHandler.obtainMessage(13).apply {
                         sendToTarget()
                     }
                     while (true) {
                         val ac = readSocket.read()
-                        if (ac == 10) {    //클라이언트로부터 소켓 종료 명령 수신
+                        if (ac == 10) {    // 클라이언트로부터 소켓 종료 명령 수신
                             mHandler.obtainMessage(16).apply {
                                 sendToTarget()
                             }
                             break
-                        } else if (ac == 2) {    //클라이언트로부터 메시지 전송 명령 수신
+                        } else if (ac == 2) {    // 클라이언트로부터 메시지 전송 명령 수신
                             val bac = readSocket.readUTF()
                             val input = bac.toString()
                             val recvInput = input.trim()
@@ -240,16 +244,16 @@ class MainActivity : AppCompatActivity() {
                             val msg = mHandler.obtainMessage()
                             msg.what = 3
                             msg.obj = recvInput
-                            mHandler.sendMessage(msg)    //핸들러에게 클라이언트로 전달받은 메시지 전송
+                            mHandler.sendMessage(msg)    // 핸들러에게 클라이언트로 전달받은 메시지 전송
                         }
                     }
                 }
 
-            } catch (e: BindException) {    //이미 개방된 포트를 개방하려 시도하였을때
+            } catch (e: BindException) {    // 이미 개방된 포트를 개방하려 시도하였을때
                 mHandler.obtainMessage(5).apply {
                     sendToTarget()
                 }
-            } catch (e: SocketException) {    //소켓이 닫혔을 때
+            } catch (e: SocketException) {    // 소켓이 닫혔을 때
                 mHandler.obtainMessage(7).apply {
                     sendToTarget()
                 }
@@ -269,7 +273,7 @@ class MainActivity : AppCompatActivity() {
         override fun run() {
             try {
                 closed = true
-                writeSocket.write(10)    //클라이언트에게 서버가 종료되었음을 알림
+                writeSocket.write(10)    // 클라이언트에게 서버가 종료되었음을 알림
                 socket.close()
                 server.close()
             } catch (e: Exception) {
@@ -290,8 +294,8 @@ class MainActivity : AppCompatActivity() {
 
         override fun run() {
             try {
-                writeSocket.writeInt(2)    //메시지 전송 명령 전송
-                writeSocket.writeUTF(msg)    //메시지 내용 
+                writeSocket.writeInt(2)    // 메시지 전송 명령 전송
+                writeSocket.writeUTF(msg)    // 메시지 내용
             } catch (e: Exception) {
                 e.printStackTrace()
                 mHandler.obtainMessage(12).apply {
